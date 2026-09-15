@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #16a34a;
+      --success-hover: #15803d;
+      --danger: #dc2626;
+      --danger-hover: #b91c1c;
+      --warning: #d97706;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 14px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-title {
+      font-weight: 700;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-icon {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text-muted);
+      padding: 4px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .btn-icon:hover {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+
+    .form-group {
+      margin-bottom: 10px;
+    }
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    select, input[type="text"], input[type="number"], textarea {
+      width: 100%;
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    select:focus, input:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+    }
+
+    .badge-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 6px;
+      font-size: 11px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 12px;
+      background: #e2e8f0;
+      color: #334155;
+      font-weight: 500;
+    }
+    .badge.active {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    /* Timer Display */
+    .timer-container {
+      text-align: center;
+      padding: 14px 0 10px 0;
+    }
+
+    .timer-display {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: #0f172a;
+      font-variant-numeric: tabular-nums;
+      margin-bottom: 4px;
+    }
+
+    .timer-status {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+    .timer-status.running {
+      color: var(--success);
+    }
+    .timer-status.paused {
+      color: var(--warning);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      width: 100%;
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #fff;
+    }
+    .btn-success:hover:not(:disabled) {
+      background: var(--success-hover);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+    .btn-danger:hover:not(:disabled) {
+      background: var(--danger-hover);
+    }
+
+    .btn-warning {
+      background: var(--warning);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover:not(:disabled) {
+      background: #e2e8f0;
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .save-modal {
+      display: none;
+      margin-top: 10px;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text);
+      margin-top: 8px;
+      cursor: pointer;
+      font-weight: normal;
+      text-transform: none;
+    }
+
+    .toast {
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-bottom: 10px;
+      display: none;
+    }
+    .toast.info {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+    }
+    .toast.success {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+    }
+    .toast.error {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+    }
+
+    .link-subtle {
+      color: var(--primary);
+      text-decoration: none;
+    }
+    .link-subtle:hover {
+      text-decoration: underline;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .active-issue-banner {
+      background: #f8fafc;
+      border-left: 3px solid var(--primary);
+      padding: 8px 10px;
+      border-radius: 0 6px 6px 0;
+      margin-bottom: 10px;
+      font-size: 12px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="header-title">
+      <span>⏱️</span>
+      <span>Sprint Tracker</span>
+    </div>
+    <div>
+      <button class="btn-icon" title="Refrescar Issues" onclick="loadProjectData()">🔄</button>
+      <button class="btn-icon" title="Configurar GitHub" onclick="openConfig()">⚙️</button>
+    </div>
+  </div>
+
+  <div id="toastMessage" class="toast"></div>
+
+  <!-- SECCIÓN: SELECTOR DE SPRINT E ISSUE -->
+  <div class="card" id="selectionCard">
+    <div class="form-group">
+      <label for="sprintSelect">Sprint / Iteración</label>
+      <select id="sprintSelect" onchange="onSprintChanged()">
+        <option value="">Cargando sprints...</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <label for="issueSelect">Issue Asignada</label>
+        <label class="checkbox-label" style="margin:0; font-size:11px;">
+          <input type="checkbox" id="filterAssigned" checked onchange="renderIssues()"> Mis Issues
+        </label>
+      </div>
+      <select id="issueSelect" onchange="onIssueChanged()">
+        <option value="">Selecciona un issue...</option>
+      </select>
+    </div>
+
+    <div class="badge-bar" id="issueDetailsBar" style="display:none;">
+      <span class="badge active" id="currentStatusBadge">Status</span>
+      <a href="#" target="_blank" id="issueLink" class="link-subtle">Ver en GitHub ↗</a>
+    </div>
+  </div>
+
+  <!-- BANNER DE ISSUE EN CURSO CUANDO CORRE EL TIMER -->
+  <div id="activeIssueBanner" class="active-issue-banner">
+    <div style="font-weight:600; color:#0f172a;" id="bannerIssueTitle">Issue en curso</div>
+    <div style="font-size:11px; color:var(--text-muted);" id="bannerSprintTitle">Sprint</div>
+  </div>
+
+  <!-- SECCIÓN: CRONÓMETRO -->
+  <div class="card">
+    <div class="timer-container">
+      <div class="timer-display" id="timeDisplay">00:00:00</div>
+      <div class="timer-status" id="timerStatus">Detenido</div>
+    </div>
+
+    <!-- Controles en estado DETENIDO -->
+    <div id="stoppedControls">
+      <button class="btn btn-success" id="btnStart" onclick="startTimerClick()">
+        <span>▶ Iniciar Trabajo</span>
+      </button>
+      <div style="margin-top: 8px;">
+        <button class="btn btn-secondary" onclick="openManualEntry()">
+          <span>📝 Registro Manual</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Controles en estado EJECUTANDO -->
+    <div id="runningControls" style="display:none;">
+      <div class="btn-grid">
+        <button class="btn btn-warning" onclick="pauseTimerClick()">
+          <span>⏸️ Pausar</span>
+        </button>
+        <button class="btn btn-danger" onclick="stopTimerClick()">
+          <span>⏹️ Detener</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Controles en estado PAUSADO -->
+    <div id="pausedControls" style="display:none;">
+      <div class="btn-grid">
+        <button class="btn btn-primary" onclick="resumeTimerClick()">
+          <span>▶ Reanudar</span>
+        </button>
+        <button class="btn btn-danger" onclick="stopTimerClick()">
+          <span>⏹️ Detener</span>
+        </button>
+      </div>
+      <div style="margin-top: 8px;">
+        <button class="btn btn-secondary" onclick="discardTimerClick()">
+          <span>✖ Descartar tiempo</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN: MODAL / FORMULARIO PARA GUARDAR SESIÓN -->
+  <div class="card save-modal" id="saveCard">
+    <div style="font-weight:700; margin-bottom: 10px; font-size:14px;">💾 Guardar Sesión de Trabajo</div>
+    
+    <div class="form-group">
+      <label>Duración Calculada (Minutos)</label>
+      <input type="number" id="sessionMinutes" min="1" step="1">
+      <div style="font-size:11px; color:var(--text-muted); margin-top:2px;" id="formattedDurationHint">0h 0m</div>
+    </div>
+
+    <div class="form-group">
+      <label for="notesInput">Notas / Resumen del trabajo</label>
+      <textarea id="notesInput" rows="3" placeholder="Ej: Implementada validación y pruebas unitarias..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="nextStatusSelect">Nuevo Estado en GitHub</label>
+      <select id="nextStatusSelect">
+        <option value="">Sin cambios en estado</option>
+      </select>
+    </div>
+
+    <label class="checkbox-label">
+      <input type="checkbox" id="chkGitHubComment" checked>
+      <span>Publicar comentario en la Issue</span>
+    </label>
+
+    <label class="checkbox-label">
+      <input type="checkbox" id="chkGitHubStatus" checked>
+      <span>Actualizar estado en GitHub Project</span>
+    </label>
+
+    <div class="btn-grid" style="margin-top: 14px;">
+      <button class="btn btn-secondary" onclick="cancelSave()">Cancelar</button>
+      <button class="btn btn-primary" id="btnConfirmSave" onclick="confirmSaveSession()">
+        <span id="saveBtnText">Guardar Registro</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ESTADO LOCAL
+    let projectData = null;
+    let timerInterval = null;
+    let localElapsedMs = 0;
+    let timerState = {
+      isRunning: false,
+      isPaused: false,
+      activeIssue: null
+    };
+
+    window.onload = function() {
+      // 1. Verificar estado del timer en el servidor
+      google.script.run
+        .withSuccessHandler(initTimerState)
+        .withFailureHandler(showError)
+        .getTimerState();
+
+      // 2. Cargar datos del proyecto
+      loadProjectData();
+    };
+
+    function showToast(msg, type = 'info') {
+      const t = document.getElementById('toastMessage');
+      t.textContent = msg;
+      t.className = 'toast ' + type;
+      t.style.display = 'block';
+      if (type === 'success' || type === 'info') {
+        setTimeout(() => { t.style.display = 'none'; }, 4500);
+      }
+    }
+
+    function showError(err) {
+      showToast(err.message || err, 'error');
+    }
+
+    function openConfig() {
+      google.script.run.showConfigDialog();
+    }
+
+    // ==========================================
+    // CARGA DE DATOS DE GITHUB PROJECTS V2
+    // ==========================================
+    function loadProjectData() {
+      showToast('Sincronizando datos de GitHub...', 'info');
+      google.script.run
+        .withSuccessHandler(handleProjectDataLoaded)
+        .withFailureHandler(showError)
+        .getProjectSprintData();
+    }
+
+    function handleProjectDataLoaded(res) {
+      if (!res.success) {
+        if (res.notConfigured) {
+          showToast('Configuración requerida: haz clic en ⚙️ para conectar tu GitHub.', 'error');
+          openConfig();
+        } else {
+          showToast(res.message, 'error');
+        }
+        return;
+      }
+
+      projectData = res;
+      showToast('Sincronización completa.', 'success');
+      renderSprints();
+      populateStatusOptions();
+
+      // Si ya había un issue en curso sincronizado
+      if (timerState.activeIssue) {
+        restoreActiveIssueUI();
+      }
+    }
+
+    function renderSprints() {
+      const select = document.getElementById('sprintSelect');
+      select.innerHTML = '';
+
+      if (!projectData.iterations || projectData.iterations.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = '__all__';
+        opt.textContent = 'Todos los Issues (Sin Iteraciones)';
+        select.appendChild(opt);
+      } else {
+        const allOpt = document.createElement('option');
+        allOpt.value = '__all__';
+        allOpt.textContent = '⚡ Todos los Sprints';
+        select.appendChild(allOpt);
+
+        projectData.iterations.forEach((it, index) => {
+          const opt = document.createElement('option');
+          opt.value = it.id;
+          opt.textContent = it.title;
+          if (index === 0) opt.selected = true; // Por defecto el sprint más reciente
+          select.appendChild(opt);
+        });
+      }
+
+      renderIssues();
+    }
+
+    function onSprintChanged() {
+      renderIssues();
+    }
+
+    function renderIssues() {
+      const issueSelect = document.getElementById('issueSelect');
+      const sprintVal = document.getElementById('sprintSelect').value;
+      const onlyAssigned = document.getElementById('filterAssigned').checked;
+
+      issueSelect.innerHTML = '<option value="">-- Selecciona una Issue --</option>';
+
+      if (!projectData || !projectData.issues) return;
+
+      const filtered = projectData.issues.filter(issue => {
+        const matchesSprint = (sprintVal === '__all__') || (issue.sprintId === sprintVal);
+        const matchesAssignee = !onlyAssigned || issue.isAssignedToUser;
+        return matchesSprint && matchesAssignee;
+      });
+
+      if (filtered.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'No hay issues en este filtro';
+        issueSelect.appendChild(opt);
+        return;
+      }
+
+      filtered.forEach(issue => {
+        const opt = document.createElement('option');
+        opt.value = issue.projectItemId;
+        opt.textContent = `#${issue.number} - ${issue.title}`;
+        opt.dataset.json = JSON.stringify(issue);
+        issueSelect.appendChild(opt);
+      });
+
+      onIssueChanged();
+    }
+
+    function onIssueChanged() {
+      const select = document.getElementById('issueSelect');
+      const detailsBar = document.getElementById('issueDetailsBar');
+      const selectedOpt = select.selectedOptions[0];
+
+      if (!selectedOpt || !selectedOpt.dataset.json) {
+        detailsBar.style.display = 'none';
+        return;
+      }
+
+      const issue = JSON.parse(selectedOpt.dataset.json);
+      detailsBar.style.display = 'flex';
+      document.getElementById('currentStatusBadge').textContent = issue.currentStatus || 'Sin estado';
+      document.getElementById('issueLink').href = issue.url;
+    }
+
+    function populateStatusOptions() {
+      const select = document.getElementById('nextStatusSelect');
+      select.innerHTML = '<option value="">Sin cambios en estado</option>';
+
+      if (projectData && projectData.statusOptions) {
+        projectData.statusOptions.forEach(opt => {
+          const el = document.createElement('option');
+          el.value = opt.id;
+          el.textContent = opt.name;
+          select.appendChild(el);
+        });
+      }
+    }
+
+    // ==========================================
+    // LÓGICA DEL CRONÓMETRO
+    // ==========================================
+    function initTimerState(state) {
+      timerState = state;
+      localElapsedMs = state.currentElapsedMs || 0;
+      updateDisplayTime(localElapsedMs);
+
+      if (state.isRunning) {
+        setUIState('running');
+        startLocalTicker();
+        if (state.activeIssue) showActiveIssueBanner(state.activeIssue);
+      } else if (state.isPaused) {
+        setUIState('paused');
+        if (state.activeIssue) showActiveIssueBanner(state.activeIssue);
+      } else {
+        setUIState('stopped');
+        hideActiveIssueBanner();
+      }
+    }
+
+    function startLocalTicker() {
+      if (timerInterval) clearInterval(timerInterval);
+      const startMark = Date.now() - localElapsedMs;
+      timerInterval = setInterval(() => {
+        localElapsedMs = Date.now() - startMark;
+        updateDisplayTime(localElapsedMs);
+      }, 1000);
+    }
+
+    function stopLocalTicker() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+
+    function updateDisplayTime(ms) {
+      const totalSecs = Math.floor(ms / 1000);
+      const hrs = Math.floor(totalSecs / 3600);
+      const mins = Math.floor((totalSecs % 3600) / 60);
+      const secs = totalSecs % 60;
+
+      const pad = n => String(n).padStart(2, '0');
+      document.getElementById('timeDisplay').textContent = `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
+    }
+
+    function setUIState(mode) {
+      document.getElementById('stoppedControls').style.display = (mode === 'stopped') ? 'block' : 'none';
+      document.getElementById('runningControls').style.display = (mode === 'running') ? 'block' : 'none';
+      document.getElementById('pausedControls').style.display = (mode === 'paused') ? 'block' : 'none';
+
+      const statusEl = document.getElementById('timerStatus');
+      statusEl.className = 'timer-status ' + mode;
+      
+      if (mode === 'running') statusEl.textContent = 'En Ejecución';
+      else if (mode === 'paused') statusEl.textContent = 'En Pausa';
+      else statusEl.textContent = 'Detenido';
+
+      document.getElementById('selectionCard').style.opacity = (mode === 'running') ? '0.6' : '1';
+      document.getElementById('issueSelect').disabled = (mode === 'running');
+      document.getElementById('sprintSelect').disabled = (mode === 'running');
+    }
+
+    function showActiveIssueBanner(issue) {
+      const b = document.getElementById('activeIssueBanner');
+      document.getElementById('bannerIssueTitle').textContent = `#${issue.number} - ${issue.title}`;
+      document.getElementById('bannerSprintTitle').textContent = `Iteración: ${issue.sprintTitle || 'Sin Sprint'}`;
+      b.style.display = 'block';
+    }
+
+    function hideActiveIssueBanner() {
+      document.getElementById('activeIssueBanner').style.display = 'none';
+    }
+
+    function getSelectedIssueData() {
+      if (timerState.activeIssue) return timerState.activeIssue;
+
+      const select = document.getElementById('issueSelect');
+      const opt = select.selectedOptions[0];
+      if (!opt || !opt.dataset.json) return null;
+
+      const issue = JSON.parse(opt.dataset.json);
+      issue.projectId = projectData.projectId;
+      issue.statusFieldId = projectData.statusFieldId;
+
+      // Buscar opción de "In Progress"
+      if (projectData.statusOptions) {
+        const inProg = projectData.statusOptions.find(o => 
+          o.name.toLowerCase().includes('progress') || o.name.toLowerCase().includes('curso')
+        );
+        if (inProg) issue.inProgressOptionId = inProg.id;
+      }
+      return issue;
+    }
+
+    function startTimerClick() {
+      const issueData = getSelectedIssueData();
+      if (!issueData) {
+        showToast('Selecciona una Issue antes de iniciar el cronómetro.', 'error');
+        return;
+      }
+
+      showToast('Iniciando cronómetro...', 'info');
+      google.script.run
+        .withSuccessHandler(res => {
+          timerState.isRunning = true;
+          timerState.isPaused = false;
+          timerState.activeIssue = issueData;
+          localElapsedMs = 0;
+          setUIState('running');
+          startLocalTicker();
+          showActiveIssueBanner(issueData);
+          showToast('Cronómetro iniciado.', 'success');
+        })
+        .withFailureHandler(showError)
+        .startTimer(issueData, true);
+    }
+
+    function pauseTimerClick() {
+      stopLocalTicker();
+      google.script.run
+        .withSuccessHandler(res => {
+          timerState.isRunning = false;
+          timerState.isPaused = true;
+          setUIState('paused');
+          showToast('Cronómetro pausado.', 'info');
+        })
+        .withFailureHandler(showError)
+        .pauseTimer();
+    }
+
+    function resumeTimerClick() {
+      google.script.run
+        .withSuccessHandler(res => {
+          timerState.isRunning = true;
+          timerState.isPaused = false;
+          setUIState('running');
+          startLocalTicker();
+          showToast('Cronómetro reanudado.', 'success');
+        })
+        .withFailureHandler(showError)
+        .resumeTimer();
+    }
+
+    function discardTimerClick() {
+      if (!confirm('¿Estás seguro de descartar este tiempo sin registrarlo?')) return;
+      stopLocalTicker();
+      google.script.run
+        .withSuccessHandler(() => {
+          timerState = { isRunning: false, isPaused: false, activeIssue: null };
+          localElapsedMs = 0;
+          updateDisplayTime(0);
+          setUIState('stopped');
+          hideActiveIssueBanner();
+          showToast('Tiempo descartado.', 'info');
+        })
+        .withFailureHandler(showError)
+        .discardTimer();
+    }
+
+    function stopTimerClick() {
+      stopLocalTicker();
+      pauseTimerClick(); // Guarda el acumulado en backend
+      openSaveModal(Math.max(1, Math.round(localElapsedMs / 60000)));
+    }
+
+    function openManualEntry() {
+      const issueData = getSelectedIssueData();
+      if (!issueData) {
+        showToast('Selecciona una Issue antes de registrar tiempo.', 'error');
+        return;
+      }
+      openSaveModal(30); // 30 min por defecto
+    }
+
+    function openSaveModal(initialMinutes) {
+      document.getElementById('saveCard').style.display = 'block';
+      const minInput = document.getElementById('sessionMinutes');
+      minInput.value = initialMinutes;
+      updateDurationHint(initialMinutes);
+      minInput.oninput = () => updateDurationHint(minInput.value);
+
+      // Preseleccionar siguiente estado sugerido (In Review o Done si existen)
+      const nextSelect = document.getElementById('nextStatusSelect');
+      if (projectData && projectData.statusOptions) {
+        for (let i = 0; i < nextSelect.options.length; i++) {
+          const text = nextSelect.options[i].text.toLowerCase();
+          if (text.includes('review') || text.includes('revisión')) {
+            nextSelect.selectedIndex = i;
+            break;
+          }
+        }
+      }
+    }
+
+    function updateDurationHint(mins) {
+      const m = parseInt(mins, 10) || 0;
+      const h = Math.floor(m / 60);
+      const remM = m % 60;
+      document.getElementById('formattedDurationHint').textContent = `${h}h ${remM}m (${(m/60).toFixed(2)} horas)`;
+    }
+
+    function cancelSave() {
+      document.getElementById('saveCard').style.display = 'none';
+      if (timerState.isPaused) {
+        setUIState('paused');
+      }
+    }
+
+    function confirmSaveSession() {
+      const issue = getSelectedIssueData();
+      if (!issue) {
+        showToast('No hay una Issue seleccionada.', 'error');
+        return;
+      }
+
+      const mins = parseInt(document.getElementById('sessionMinutes').value, 10);
+      if (!mins || mins <= 0) {
+        showToast('Ingresa una duración válida mayor a 0 minutos.', 'error');
+        return;
+      }
+
+      const notes = document.getElementById('notesInput').value.trim();
+      const nextStatusSelect = document.getElementById('nextStatusSelect');
+      const targetOptionId = nextSelectStatusOptionId();
+      const resultingStatusName = nextSelectStatusName();
+
+      const shouldComment = document.getElementById('chkGitHubComment').checked;
+      const shouldUpdateStatus = document.getElementById('chkGitHubStatus').checked && Boolean(targetOptionId);
+
+      const btn = document.getElementById('btnConfirmSave');
+      btn.disabled = true;
+      document.getElementById('saveBtnText').innerHTML = '<span class="loading-spinner"></span> Guardando...';
+
+      const payload = {
+        projectId: projectData.projectId,
+        projectItemId: issue.projectItemId,
+        statusFieldId: projectData.statusFieldId,
+        targetStatusOptionId: targetOptionId,
+        resultingStatusName: resultingStatusName,
+        issueNodeId: issue.issueNodeId,
+        issueNumber: issue.number,
+        issueTitle: issue.title,
+        issueUrl: issue.url,
+        sprintTitle: issue.sprintTitle,
+        durationMinutes: mins,
+        notes: notes,
+        shouldComment: shouldComment,
+        shouldUpdateStatus: shouldUpdateStatus
+      };
+
+      google.script.run
+        .withSuccessHandler(res => {
+          btn.disabled = false;
+          document.getElementById('saveBtnText').textContent = 'Guardar Registro';
+          document.getElementById('saveCard').style.display = 'none';
+          document.getElementById('notesInput').value = '';
+
+          timerState = { isRunning: false, isPaused: false, activeIssue: null };
+          localElapsedMs = 0;
+          updateDisplayTime(0);
+          setUIState('stopped');
+          hideActiveIssueBanner();
+
+          let msg = '✅ Tiempo guardado en Google Sheets.';
+          if (res.githubCommentSuccess) msg += ' Comentario publicado en GitHub.';
+          if (res.githubStatusSuccess) msg += ' Estado actualizado en Project v2.';
+          showToast(msg, 'success');
+
+          // Refrescar lista de issues por si cambió de estado
+          loadProjectData();
+        })
+        .withFailureHandler(err => {
+          btn.disabled = false;
+          document.getElementById('saveBtnText').textContent = 'Guardar Registro';
+          showError(err);
+        })
+        .saveWorkSession(payload);
+    }
+
+    function nextSelectStatusOptionId() {
+      const s = document.getElementById('nextStatusSelect');
+      return s.value || null;
+    }
+
+    function nextSelectStatusName() {
+      const s = document.getElementById('nextStatusSelect');
+      if (!s.value) return 'Sin cambios';
+      return s.selectedOptions[0].text;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #cbd5e1;
+      --bg: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      padding: 16px 20px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: #334155;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    input[type="text"], input[type="password"], select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .alert {
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-bottom: 14px;
+      display: none;
+    }
+    .alert.info {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+    }
+    .alert.success {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+    }
+    .alert.error {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+      padding-top: 14px;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background 0.2s;
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover:not(:disabled) {
+      background: #e2e8f0;
+    }
+
+    .btn-test {
+      background: #0f766e;
+      color: #fff;
+    }
+    .btn-test:hover:not(:disabled) {
+      background: #115e59;
+    }
+
+    .password-wrapper {
+      position: relative;
+    }
+    .toggle-pass {
+      position: absolute;
+      right: 8px;
+      top: 8px;
+      background: none;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="alertBox" class="alert"></div>
+
+  <form id="configForm" onsubmit="event.preventDefault(); saveConfig();">
+    <div class="form-group">
+      <label for="ghToken">Personal Access Token (PAT)</label>
+      <div class="password-wrapper">
+        <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" required>
+        <button type="button" class="toggle-pass" onclick="togglePasswordVisibility()">👁️</button>
+      </div>
+      <div class="hint">Requiere permisos: <code>read:project</code>, <code>project</code> (escritura) y <code>repo</code>.</div>
+    </div>
+
+    <div class="row">
+      <div class="form-group">
+        <label for="ghOwnerType">Tipo de Dueño del Proyecto</label>
+        <select id="ghOwnerType">
+          <option value="organization">Organización</option>
+          <option value="user">Usuario Personal</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="ghOwner">Organización / Usuario</label>
+        <input type="text" id="ghOwner" placeholder="ej: mi-organizacion" required>
+        <div class="hint">El login de la organización o usuario dueño.</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="form-group">
+        <label for="ghRepo">Nombre del Repositorio</label>
+        <input type="text" id="ghRepo" placeholder="ej: mi-software-core" required>
+      </div>
+
+      <div class="form-group">
+        <label for="ghProjectNumber">Número del Project (v2)</label>
+        <input type="number" id="ghProjectNumber" placeholder="ej: 1" required min="1">
+        <div class="hint">El número en la URL <code>.../projects/1</code></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="ghUsername">Tu Usuario de GitHub (Para filtrar tus tareas)</label>
+      <input type="text" id="ghUsername" placeholder="ej: tomas-dev">
+      <div class="hint">Filtra en el cronómetro solo las Issues asignadas a ti.</div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn btn-secondary" onclick="closeDialog()">Cancelar</button>
+      <button type="button" class="btn btn-test" id="btnTest" onclick="testConnection()">🧪 Probar Conexión</button>
+      <button type="submit" class="btn btn-primary" id="btnSave">💾 Guardar</button>
+    </div>
+  </form>
+
+  <script>
+    window.onload = function() {
+      google.script.run
+        .withSuccessHandler(populateSettings)
+        .withFailureHandler(showError)
+        .getSettings();
+    };
+
+    function showAlert(text, type) {
+      const el = document.getElementById('alertBox');
+      el.textContent = text;
+      el.className = 'alert ' + type;
+      el.style.display = 'block';
+    }
+
+    function showError(err) {
+      showAlert(err.message || err, 'error');
+    }
+
+    function populateSettings(settings) {
+      if (!settings) return;
+      if (settings.token) document.getElementById('ghToken').value = settings.token;
+      if (settings.ownerType) document.getElementById('ghOwnerType').value = settings.ownerType;
+      if (settings.owner) document.getElementById('ghOwner').value = settings.owner;
+      if (settings.repo) document.getElementById('ghRepo').value = settings.repo;
+      if (settings.projectNumber) document.getElementById('ghProjectNumber').value = settings.projectNumber;
+      if (settings.username) document.getElementById('ghUsername').value = settings.username;
+    }
+
+    function togglePasswordVisibility() {
+      const input = document.getElementById('ghToken');
+      input.type = (input.type === 'password') ? 'text' : 'password';
+    }
+
+    function getFormData() {
+      return {
+        token: document.getElementById('ghToken').value.trim(),
+        ownerType: document.getElementById('ghOwnerType').value,
+        owner: document.getElementById('ghOwner').value.trim(),
+        repo: document.getElementById('ghRepo').value.trim(),
+        projectNumber: document.getElementById('ghProjectNumber').value.trim(),
+        username: document.getElementById('ghUsername').value.trim()
+      };
+    }
+
+    function testConnection() {
+      const data = getFormData();
+      if (!data.token || !data.owner || !data.projectNumber) {
+        showAlert('Completa el Token, Dueño y Número de Proyecto para probar la conexión.', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btnTest');
+      btn.disabled = true;
+      btn.textContent = 'Probando...';
+      showAlert('Consultando GitHub Projects GraphQL API...', 'info');
+
+      google.script.run
+        .withSuccessHandler(res => {
+          btn.disabled = false;
+          btn.textContent = '🧪 Probar Conexión';
+          if (res.success) {
+            showAlert(res.message, 'success');
+          } else {
+            showAlert(res.message, 'error');
+          }
+        })
+        .withFailureHandler(err => {
+          btn.disabled = false;
+          btn.textContent = '🧪 Probar Conexión';
+          showError(err);
+        })
+        .testGitHubConnection(data);
+    }
+
+    function saveConfig() {
+      const data = getFormData();
+      const btn = document.getElementById('btnSave');
+      btn.disabled = true;
+      btn.textContent = 'Guardando...';
+
+      google.script.run
+        .withSuccessHandler(res => {
+          btn.disabled = false;
+          btn.textContent = '💾 Guardar';
+          showAlert('✅ ' + res.message, 'success');
+          setTimeout(() => {
+            google.script.host.close();
+          }, 1200);
+        })
+        .withFailureHandler(err => {
+          btn.disabled = false;
+          btn.textContent = '💾 Guardar';
+          showError(err);
+        })
+        .saveSettings(data);
+    }
+
+    function closeDialog() {
+      google.script.host.close();
+    }
+  </script>
+</body>
+</html>
