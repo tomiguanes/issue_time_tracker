@@ -623,9 +623,10 @@ function saveWorkSession(sessionData) {
     logSheet = ss.getSheetByName(SHEET_NAMES.LOGS);
   }
   
+  const tz = Session.getScriptTimeZone() || ss.getSpreadsheetTimeZone() || 'UTC';
   const now = new Date();
-  const recordId = 'LOG-' + Utilities.formatDate(now, 'GMT-3', 'yyyyMMdd-HHmmss');
-  const dateStr = Utilities.formatDate(now, 'GMT-3', 'yyyy-MM-dd');
+  const recordId = 'LOG-' + Utilities.formatDate(now, tz, 'yyyyMMdd-HHmmss');
+  const dateStr = Utilities.formatDate(now, tz, 'yyyy-MM-dd');
   
   const durationSeconds = Math.max(1, Math.round((sessionData.durationMinutes || 0) * 60));
   const durationHours = durationSeconds / 3600;
@@ -634,8 +635,8 @@ function saveWorkSession(sessionData) {
   const mins = Math.floor((durationSeconds % 3600) / 60);
   const durationText = `${hrs}h ${mins}m`;
   
-  const startTimeStr = sessionData.startTimeStr || Utilities.formatDate(new Date(now.getTime() - durationSeconds * 1000), 'GMT-3', 'HH:mm:ss');
-  const endTimeStr = sessionData.endTimeStr || Utilities.formatDate(now, 'GMT-3', 'HH:mm:ss');
+  const startTimeStr = sessionData.startTimeStr || Utilities.formatDate(new Date(now.getTime() - durationSeconds * 1000), tz, 'HH:mm:ss');
+  const endTimeStr = sessionData.endTimeStr || Utilities.formatDate(now, tz, 'HH:mm:ss');
   
   const rowData = [
     recordId,
