@@ -19,7 +19,7 @@
 
 
 <div align="center">
-  <img src="./assets/sidebar_sidebar.png" alt="Sidebar de Time Tracker" width="300"/>
+  <img src="./assets/sidebar.png" alt="Sidebar de Time Tracker" width="300"/>
   <img src="./assets/sheetRegistro.png" alt="Google Sheets Registro" width="550"/>
   <img src="./assets/sheetResumen.png" alt="Google Sheets Resumen" width="550"/>
   <img src="./assets/issueTracked&Moved.png" alt="Issue trackeada y cambio de estado en project" width="550"/>
