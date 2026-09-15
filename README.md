@@ -16,15 +16,16 @@
 
 ---
 
-## 📸 Vista Previa
 
-<!-- Puedes añadir tus capturas de pantalla en la carpeta assets/ y descomentar las líneas siguientes -->
-<!--
+
 <div align="center">
-  <img src="./assets/sidebar_preview.png" alt="Sidebar de Time Tracker" width="300"/>
-  <img src="./assets/sheets_preview.png" alt="Google Sheets Registro y Resumen" width="550"/>
+  <img src="./assets/sidebar_sidebar.png" alt="Sidebar de Time Tracker" width="300"/>
+  <img src="./assets/sheetRegistro.png" alt="Google Sheets Registro" width="550"/>
+  <img src="./assets/sheetResumen.png" alt="Google Sheets Resumen" width="550"/>
+  <img src="./assets/issueTracked&Moved.png" alt="Issue trackeada y cambio de estado en project" width="550"/>
+
 </div>
--->
+
 
 > [!TIP]
 > **100% Serverless y Privado**: Funciona íntegramente dentro de tu entorno de Google Workspace. No requiere servidores intermediarios, bases de datos externas ni suscripciones de terceros.
@@ -74,15 +75,7 @@
 
 Puedes configurar el proyecto en menos de 5 minutos mediante cualquiera de los siguientes métodos:
 
-### Opción 1: Plantilla Lista para Usar (Recomendada)
-
-1. Abre la [Plantilla de Google Sheets (Copia Rápida)](https://docs.google.com/spreadsheets/d/TU_SHEET_ID_AQUI/copy) *(puedes enlazar aquí tu propia plantilla pública)*.
-2. Haz clic en **Hacer una copia**.
-3. Continúa directamente al **Paso 3 (Configuración)**.
-
----
-
-### Opción 2: Instalación Manual Paso a Paso
+### Opción 1: Instalación Manual Paso a Paso
 
 #### Paso 1: Generar tu Personal Access Token (PAT) en GitHub
 1. En GitHub, ve a **Settings > Developer Settings > Personal Access Tokens > Tokens (classic)**.
@@ -129,7 +122,7 @@ Puedes configurar el proyecto en menos de 5 minutos mediante cualquiera de los s
 
 ---
 
-### Opción 3: Para Desarrolladores (Google Clasp)
+### Opción 2: Para Desarrolladores (Google Clasp)
 
 Si prefieres trabajar localmente y desplegar mediante el CLI oficial de Google:
 
