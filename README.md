@@ -74,9 +74,9 @@ Podés configurar el proyecto en menos de 5 minutos mediante cualquiera de los s
 
 ### Opción 1: Copia directa (Crear una  copia de una hoja preconfigurada con el código)
 https://docs.google.com/spreadsheets/d/187UjXKfWjCBEcvivS8SN0lmQ7e-0G9tw6jZ8y26x4fU/edit?usp=sharing 
-1- Abre la Plantilla de Google Sheets (Copia Rápida) (puedes enlazar aquí tu propia plantilla pública).
-2- Haz clic en Hacer una copia.
-3- Continúa directamente a la sección: Configuración.
+1. Abre la Plantilla de Google Sheets (Copia Rápida) (puedes enlazar aquí tu propia plantilla pública).
+2. Haz clic en Hacer una copia.
+3. Continúa directamente a la sección: Configuración.
 
 ### Opción 2: Instalación Manual Paso a Paso
 1. Abrí [Google Sheets](https://sheets.new) y creá una hoja en blanco nueva.
