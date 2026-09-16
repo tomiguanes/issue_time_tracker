@@ -333,6 +333,10 @@
           <input type="checkbox" id="filterAssigned" checked onchange="renderIssues()"> Mis Issues
         </label>
       </div>
+      <div style="position:relative; margin-bottom:6px;">
+        <input type="text" id="issueSearchInput" placeholder="🔍 Buscar por # o título..." oninput="renderIssues()" style="padding-right:24px;">
+        <button type="button" id="clearSearchBtn" onclick="clearSearch()" title="Limpiar búsqueda" style="position:absolute; right:7px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:12px; display:none;">✕</button>
+      </div>
       <select id="issueSelect" onchange="onIssueChanged()">
         <option value="">Selecciona un issue...</option>
       </select>
@@ -543,10 +547,23 @@
       renderIssues();
     }
 
+    function clearSearch() {
+      const input = document.getElementById('issueSearchInput');
+      if (input) {
+        input.value = '';
+        renderIssues();
+        input.focus();
+      }
+    }
+
     function renderIssues() {
       const issueSelect = document.getElementById('issueSelect');
       const sprintVal = document.getElementById('sprintSelect').value;
       const onlyAssigned = document.getElementById('filterAssigned').checked;
+      const searchInput = document.getElementById('issueSearchInput');
+      const searchQuery = (searchInput?.value || '').trim().toLowerCase();
+      const clearBtn = document.getElementById('clearSearchBtn');
+      if (clearBtn) clearBtn.style.display = searchQuery ? 'block' : 'none';
 
       issueSelect.innerHTML = '<option value="">-- Selecciona una Issue --</option>';
 
@@ -563,19 +580,24 @@
         }
 
         const matchesAssignee = !onlyAssigned || issue.isAssignedToUser;
-        return matchesSprint && matchesAssignee;
+
+        const matchesSearch = !searchQuery ||
+          String(issue.number).includes(searchQuery) ||
+          (issue.title && issue.title.toLowerCase().includes(searchQuery));
+
+        return matchesSprint && matchesAssignee && matchesSearch;
       });
 
       if (filtered.length === 0) {
         const opt = document.createElement('option');
         opt.value = '';
-        opt.textContent = 'No hay issues en este filtro';
+        opt.textContent = searchQuery ? 'Sin resultados para la búsqueda' : 'No hay issues en este filtro';
         issueSelect.appendChild(opt);
         return;
       }
 
-      // Ordenar issues por número descendente (más recientes primero)
-      filtered.sort((a, b) => b.number - a.number);
+      // Ordenar issues por número ascendente (#1, #2, #3...)
+      filtered.sort((a, b) => Number(a.number) - Number(b.number));
 
       filtered.forEach(issue => {
         const opt = document.createElement('option');
@@ -586,6 +608,11 @@
         opt.dataset.json = JSON.stringify(issue);
         issueSelect.appendChild(opt);
       });
+
+      // Si la búsqueda arrojó exactamente un resultado, preseleccionarlo automáticamente
+      if (searchQuery && filtered.length === 1) {
+        issueSelect.selectedIndex = 1;
+      }
 
       onIssueChanged();
     }
