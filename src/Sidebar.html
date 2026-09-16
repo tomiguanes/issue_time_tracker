@@ -516,25 +516,25 @@
       const select = document.getElementById('sprintSelect');
       select.innerHTML = '';
 
-      if (!projectData.iterations || projectData.iterations.length === 0) {
-        const opt = document.createElement('option');
-        opt.value = '__all__';
-        opt.textContent = 'Todos los Issues (Sin Iteraciones)';
-        select.appendChild(opt);
-      } else {
-        const allOpt = document.createElement('option');
-        allOpt.value = '__all__';
-        allOpt.textContent = '⚡ Todos los Sprints';
-        select.appendChild(allOpt);
+      const allOpt = document.createElement('option');
+      allOpt.value = '__all__';
+      allOpt.textContent = '⚡ Todos los Sprints';
+      allOpt.selected = true; // Seleccionado por defecto para ver todas las tareas
+      select.appendChild(allOpt);
 
-        projectData.iterations.forEach((it, index) => {
+      if (projectData.iterations && projectData.iterations.length > 0) {
+        projectData.iterations.forEach((it) => {
           const opt = document.createElement('option');
           opt.value = it.id;
           opt.textContent = it.title;
-          if (index === 0) opt.selected = true; // Por defecto el sprint más reciente
           select.appendChild(opt);
         });
       }
+
+      const noneOpt = document.createElement('option');
+      noneOpt.value = '__none__';
+      noneOpt.textContent = '📋 Sin Sprint / Backlog';
+      select.appendChild(noneOpt);
 
       renderIssues();
     }
@@ -553,7 +553,15 @@
       if (!projectData || !projectData.issues) return;
 
       const filtered = projectData.issues.filter(issue => {
-        const matchesSprint = (sprintVal === '__all__') || (issue.sprintId === sprintVal);
+        let matchesSprint = false;
+        if (sprintVal === '__all__') {
+          matchesSprint = true;
+        } else if (sprintVal === '__none__') {
+          matchesSprint = (!issue.sprintId || issue.sprintTitle === 'Sin Sprint');
+        } else {
+          matchesSprint = (issue.sprintId === sprintVal || issue.sprintTitle === sprintVal);
+        }
+
         const matchesAssignee = !onlyAssigned || issue.isAssignedToUser;
         return matchesSprint && matchesAssignee;
       });
@@ -566,10 +574,15 @@
         return;
       }
 
+      // Ordenar issues por número descendente (más recientes primero)
+      filtered.sort((a, b) => b.number - a.number);
+
       filtered.forEach(issue => {
         const opt = document.createElement('option');
         opt.value = issue.projectItemId;
-        opt.textContent = `#${issue.number} - ${issue.title}`;
+        const sprintTag = (issue.sprintTitle && issue.sprintTitle !== 'Sin Sprint') ? ` [${issue.sprintTitle}]` : '';
+        const statusTag = issue.currentStatus ? ` (${issue.currentStatus})` : '';
+        opt.textContent = `#${issue.number} - ${issue.title}${sprintTag}${statusTag}`;
         opt.dataset.json = JSON.stringify(issue);
         issueSelect.appendChild(opt);
       });

@@ -352,7 +352,7 @@ function getProjectSprintData() {
     const projNum = parseInt(config.projectNumber, 10);
     
     const query = `
-      query GetProjectItems($owner: String!, $number: Int!) {
+      query GetProjectItemsPage($owner: String!, $number: Int!, $cursor: String) {
         ${isOrg ? 'organization' : 'user'}(login: $owner) {
           projectV2(number: $number) {
             id
@@ -381,7 +381,11 @@ function getProjectSprintData() {
                 }
               }
             }
-            items(first: 100) {
+            items(first: 100, after: $cursor) {
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
               nodes {
                 id
                 content {
@@ -391,6 +395,10 @@ function getProjectSprintData() {
                     title
                     url
                     state
+                    milestone {
+                      id
+                      title
+                    }
                     assignees(first: 10) {
                       nodes {
                         login
@@ -432,9 +440,34 @@ function getProjectSprintData() {
       }
     `;
     
-    const data = executeGitHubGraphQL(query, { owner: config.owner, number: projNum });
-    const ownerObj = isOrg ? data.organization : data.user;
-    const project = ownerObj.projectV2;
+    let hasNextPage = true;
+    let cursor = null;
+    let allItemNodes = [];
+    let project = null;
+    let maxPages = 10; // Límite de seguridad: hasta 1000 items
+    let pageCount = 0;
+
+    while (hasNextPage && pageCount < maxPages) {
+      pageCount++;
+      const data = executeGitHubGraphQL(query, { owner: config.owner, number: projNum, cursor: cursor });
+      const ownerObj = isOrg ? data.organization : data.user;
+      
+      if (!ownerObj || !ownerObj.projectV2) {
+        throw new Error(`No se encontró el Proyecto v2 #${projNum} en ${config.owner}. Verifica el número y permisos.`);
+      }
+
+      project = ownerObj.projectV2;
+      const itemsData = project.items;
+      if (itemsData && itemsData.nodes) {
+        allItemNodes.push(...itemsData.nodes);
+      }
+
+      if (itemsData && itemsData.pageInfo && itemsData.pageInfo.hasNextPage) {
+        cursor = itemsData.pageInfo.endCursor;
+      } else {
+        hasNextPage = false;
+      }
+    }
     
     // Identificar campo de Iteración y de Estado (Status)
     let iterationField = null;
@@ -449,7 +482,9 @@ function getProjectSprintData() {
     }
     
     const iterationsList = [];
-    if (iterationField && iterationField.configuration) {
+    const milestoneMap = new Map();
+
+    if (iterationField && iterationField.configuration && iterationField.configuration.iterations) {
       iterationsList.push(...iterationField.configuration.iterations.map(it => ({
         id: it.id,
         title: it.title,
@@ -460,9 +495,9 @@ function getProjectSprintData() {
     
     // Procesar los items del proyecto
     const issues = [];
-    const targetUsername = (config.username || '').toLowerCase();
+    const targetUsername = (config.username || '').replace(/^@/, '').trim().toLowerCase();
     
-    for (const item of project.items.nodes) {
+    for (const item of allItemNodes) {
       if (!item.content || !item.content.number) continue; // Solo Issues
       
       const issue = item.content;
@@ -485,6 +520,13 @@ function getProjectSprintData() {
           itemStatusOptionId = fVal.optionId;
         }
       }
+
+      // Si no tiene Iteration propia en Project v2, adoptar Milestone si existe
+      if ((!itemSprintId || itemSprintTitle === 'Sin Sprint') && issue.milestone && issue.milestone.title) {
+        itemSprintTitle = issue.milestone.title;
+        itemSprintId = 'milestone_' + issue.milestone.title;
+        milestoneMap.set(issue.milestone.title, itemSprintId);
+      }
       
       issues.push({
         projectItemId: item.id,
@@ -501,6 +543,20 @@ function getProjectSprintData() {
         statusOptionId: itemStatusOptionId
       });
     }
+
+    // Agregar Milestones detectados a la lista de iteraciones si no estaban
+    milestoneMap.forEach((mId, mTitle) => {
+      const exists = iterationsList.some(it => it.title.toLowerCase() === mTitle.toLowerCase());
+      if (!exists) {
+        iterationsList.push({
+          id: mId,
+          title: mTitle
+        });
+      }
+    });
+
+    // Ordenar iteraciones alfanuméricamente
+    iterationsList.sort((a, b) => b.title.localeCompare(a.title, undefined, { numeric: true, sensitivity: 'base' }));
     
     return {
       success: true,
