@@ -342,9 +342,17 @@
       </select>
     </div>
 
-    <div class="badge-bar" id="issueDetailsBar" style="display:none;">
-      <span class="badge active" id="currentStatusBadge">Status</span>
-      <a href="#" target="_blank" id="issueLink" class="link-subtle">Ver en GitHub ↗</a>
+    <div class="badge-bar" id="issueDetailsBar" style="display:none; flex-wrap:wrap; gap:6px; margin-top:8px;">
+      <div style="display:flex; align-items:center; gap:6px;">
+        <span class="badge active" id="currentStatusBadge">Status</span>
+        <a href="#" target="_blank" id="issueLink" class="link-subtle">Ver en GitHub ↗</a>
+      </div>
+      <div style="display:flex; align-items:center; gap:4px; font-size:11px; margin-left:auto;">
+        <label for="issueEstimateInput" style="margin:0; text-transform:none; font-size:11px; color:var(--text-muted);">⏱️ Est:</label>
+        <input type="number" id="issueEstimateInput" step="0.25" min="0" placeholder="0" style="width:52px; padding:2px 4px; font-size:11px; height:24px;" onchange="saveEstimateFromBar()">
+        <span style="color:var(--text-muted); font-size:11px;">h</span>
+        <button type="button" id="btnSaveEstimate" class="btn-icon" title="Guardar estimación en GitHub y Sheets" onclick="saveEstimateFromBar()" style="font-size:12px; padding:2px 4px;">💾</button>
+      </div>
     </div>
   </div>
 
@@ -411,6 +419,24 @@
       <label>Duración Calculada (Minutos)</label>
       <input type="number" id="sessionMinutes" min="1" step="1">
       <div style="font-size:11px; color:var(--text-muted); margin-top:2px;" id="formattedDurationHint">0h 0m</div>
+    </div>
+
+    <div style="background:#f1f5f9; border-radius:6px; padding:8px 10px; margin-bottom:10px; font-size:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <span style="color:var(--text-muted);">Horas Estimadas:</span>
+        <div style="display:flex; align-items:center; gap:4px;">
+          <input type="number" id="modalEstimateInput" step="0.25" min="0" placeholder="0" style="width:58px; padding:2px 4px; font-size:12px; height:24px; text-align:right;" oninput="updateModalComparison()">
+          <span style="font-weight:600;">hrs</span>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+        <span style="color:var(--text-muted);">Esta sesión:</span>
+        <span id="modalSessionHours" style="font-weight:600;">0.00 hrs</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; border-top:1px dashed #cbd5e1; padding-top:4px; margin-top:4px;">
+        <span style="color:var(--text-muted);">Saldo / Restante:</span>
+        <span id="modalRemainingHours" style="font-weight:700;">-</span>
+      </div>
     </div>
 
     <div class="form-group">
@@ -631,6 +657,45 @@
       detailsBar.style.display = 'flex';
       document.getElementById('currentStatusBadge').textContent = issue.currentStatus || 'Sin estado';
       document.getElementById('issueLink').href = issue.url;
+
+      const estInput = document.getElementById('issueEstimateInput');
+      if (estInput) {
+        estInput.value = (typeof issue.estimate === 'number' && issue.estimate > 0) ? issue.estimate : '';
+      }
+    }
+
+    function saveEstimateFromBar() {
+      const issue = getSelectedIssueData();
+      if (!issue) {
+        showToast('Selecciona una Issue primero.', 'error');
+        return;
+      }
+      const estVal = parseFloat(document.getElementById('issueEstimateInput').value);
+      if (isNaN(estVal) || estVal < 0) {
+        showToast('Ingresa un número válido para la estimación (>= 0).', 'error');
+        return;
+      }
+
+      showToast('Guardando estimación...', 'info');
+      google.script.run
+        .withSuccessHandler(res => {
+          issue.estimate = estVal;
+          const select = document.getElementById('issueSelect');
+          if (select.selectedOptions[0]) {
+            select.selectedOptions[0].dataset.json = JSON.stringify(issue);
+          }
+          let msg = `✅ Estimación de #${issue.number} guardada (${estVal}h).`;
+          if (res.ghUpdated) msg += ' Sincronizada con GitHub Project.';
+          showToast(msg, 'success');
+        })
+        .withFailureHandler(showError)
+        .updateIssueEstimate(
+          projectData.projectId,
+          issue.projectItemId,
+          projectData.estimateFieldId,
+          estVal,
+          issue.number
+        );
     }
 
     function populateStatusOptions() {
@@ -828,7 +893,17 @@
       const minInput = document.getElementById('sessionMinutes');
       minInput.value = initialMinutes;
       updateDurationHint(initialMinutes);
-      minInput.oninput = () => updateDurationHint(minInput.value);
+      minInput.oninput = () => {
+        updateDurationHint(minInput.value);
+        updateModalComparison();
+      };
+
+      const issue = getSelectedIssueData();
+      const modalEstInput = document.getElementById('modalEstimateInput');
+      if (modalEstInput) {
+        modalEstInput.value = (issue && typeof issue.estimate === 'number' && issue.estimate > 0) ? issue.estimate : '';
+      }
+      updateModalComparison();
 
       // Preseleccionar siguiente estado sugerido (In Review o Done si existen)
       const nextSelect = document.getElementById('nextStatusSelect');
@@ -848,6 +923,33 @@
       const h = Math.floor(m / 60);
       const remM = m % 60;
       document.getElementById('formattedDurationHint').textContent = `${h}h ${remM}m (${(m/60).toFixed(2)} horas)`;
+    }
+
+    function updateModalComparison() {
+      const minInput = document.getElementById('sessionMinutes');
+      const mins = parseInt(minInput ? minInput.value : '0', 10) || 0;
+      const sessionHrs = mins / 60;
+      const sessionEl = document.getElementById('modalSessionHours');
+      if (sessionEl) sessionEl.textContent = sessionHrs.toFixed(2) + ' hrs';
+
+      const estInput = document.getElementById('modalEstimateInput');
+      const est = estInput ? parseFloat(estInput.value) : 0;
+      const remEl = document.getElementById('modalRemainingHours');
+      if (remEl) {
+        if (!isNaN(est) && est > 0) {
+          const diff = est - sessionHrs;
+          if (diff >= 0) {
+            remEl.textContent = `+${diff.toFixed(2)} hrs restantes (a favor)`;
+            remEl.style.color = '#166534';
+          } else {
+            remEl.textContent = `${Math.abs(diff).toFixed(2)} hrs de exceso (en contra)`;
+            remEl.style.color = '#991b1b';
+          }
+        } else {
+          remEl.textContent = 'Sin estimación definida';
+          remEl.style.color = 'inherit';
+        }
+      }
     }
 
     function cancelSave() {
@@ -878,6 +980,9 @@
       const shouldComment = document.getElementById('chkGitHubComment').checked;
       const shouldUpdateStatus = document.getElementById('chkGitHubStatus').checked && Boolean(targetOptionId);
 
+      const modalEstInput = document.getElementById('modalEstimateInput');
+      const newEstimateVal = modalEstInput && modalEstInput.value !== '' ? parseFloat(modalEstInput.value) : null;
+
       const btn = document.getElementById('btnConfirmSave');
       btn.disabled = true;
       document.getElementById('saveBtnText').innerHTML = '<span class="loading-spinner"></span> Guardando...';
@@ -888,6 +993,8 @@
         statusFieldId: projectData.statusFieldId,
         targetStatusOptionId: targetOptionId,
         resultingStatusName: resultingStatusName,
+        estimateFieldId: projectData.estimateFieldId,
+        newEstimate: newEstimateVal,
         issueNodeId: issue.issueNodeId,
         issueNumber: issue.number,
         issueTitle: issue.title,
@@ -915,6 +1022,7 @@
           let msg = '✅ Tiempo guardado en Google Sheets.';
           if (res.githubCommentSuccess) msg += ' Comentario publicado en GitHub.';
           if (res.githubStatusSuccess) msg += ' Estado actualizado en Project v2.';
+          if (res.githubEstimateSuccess) msg += ' Estimación sincronizada con GitHub.';
           showToast(msg, 'success');
 
           // Refrescar lista de issues por si cambió de estado

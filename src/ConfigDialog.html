@@ -204,6 +204,12 @@
       <div class="hint">Filtra en el cronómetro solo las Issues asignadas a ti.</div>
     </div>
 
+    <div class="form-group">
+      <label for="ghEstimateField">Campo de Estimación en GitHub (Opcional)</label>
+      <input type="text" id="ghEstimateField" placeholder="ej: Estimate, Estimación (o vacío para auto-detectar)">
+      <div class="hint">Nombre del campo numérico en GitHub Projects v2 para registrar horas estimadas.</div>
+    </div>
+
     <div class="actions">
       <button type="button" class="btn btn-secondary" onclick="closeDialog()">Cancelar</button>
       <button type="button" class="btn btn-test" id="btnTest" onclick="testConnection()">🧪 Probar Conexión</button>
@@ -238,6 +244,7 @@
       if (settings.repo) document.getElementById('ghRepo').value = settings.repo;
       if (settings.projectNumber) document.getElementById('ghProjectNumber').value = settings.projectNumber;
       if (settings.username) document.getElementById('ghUsername').value = settings.username;
+      if (settings.estimateField) document.getElementById('ghEstimateField').value = settings.estimateField;
     }
 
     function togglePasswordVisibility() {
@@ -252,7 +259,8 @@
         owner: document.getElementById('ghOwner').value.trim(),
         repo: document.getElementById('ghRepo').value.trim(),
         projectNumber: document.getElementById('ghProjectNumber').value.trim(),
-        username: document.getElementById('ghUsername').value.trim()
+        username: document.getElementById('ghUsername').value.trim(),
+        estimateField: document.getElementById('ghEstimateField').value.trim()
       };
     }
 

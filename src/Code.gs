@@ -97,8 +97,10 @@ function setupSheets() {
     'Sprint / Iteración',
     'Issue #',
     'Título',
-    'Total Horas',
-    'Formato Horas',
+    'Horas Estimadas',
+    'Horas Reales',
+    'Diferencia (Real - Est.)',
+    '% Consumido',
     'N° Sesiones',
     'Enlace Issue'
   ];
@@ -112,35 +114,50 @@ function setupSheets() {
     .setHorizontalAlignment('center');
     
   summarySheet.setFrozenRows(1);
-  summarySheet.setColumnWidth(1, 140);
-  summarySheet.setColumnWidth(2, 85);
-  summarySheet.setColumnWidth(3, 260);
-  summarySheet.setColumnWidth(4, 110);
-  summarySheet.setColumnWidth(5, 120);
-  summarySheet.setColumnWidth(6, 100);
-  summarySheet.setColumnWidth(7, 220);
+  const sumColWidths = [140, 85, 260, 115, 110, 140, 110, 95, 220];
+  sumColWidths.forEach((w, i) => summarySheet.setColumnWidth(i + 1, w));
 
   refreshSummary();
-  return { success: true, message: 'Hojas inicializadas y estructuradas correctamente.' };
+  return { success: true, message: 'Hojas inicializadas y estructuradas con métricas de estimación y semáforo.' };
 }
 
-function refreshSummary() {
+function refreshSummary(newEstimatesMap) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const logSheet = ss.getSheetByName(SHEET_NAMES.LOGS);
   const sumSheet = ss.getSheetByName(SHEET_NAMES.SUMMARY);
   
   if (!logSheet || !sumSheet) return;
   
+  // 1. Resguardar estimaciones existentes cargadas en la hoja para no sobreescribirlas
+  const existingEstimates = new Map();
+  const lastSumRow = sumSheet.getLastRow();
+  if (lastSumRow > 1) {
+    const sumData = sumSheet.getRange(2, 2, lastSumRow - 1, 3).getValues(); // Col B (Issue #), Col C (Título), Col D (Estimado)
+    for (const r of sumData) {
+      const iNum = r[0];
+      const est = parseFloat(r[2]);
+      if (iNum && !isNaN(est) && est > 0) {
+        existingEstimates.set(String(iNum), est);
+      }
+    }
+  }
+
+  // Si se enviaron estimaciones actualizadas desde el Sidebar o GitHub
+  if (newEstimatesMap) {
+    for (const [k, v] of Object.entries(newEstimatesMap)) {
+      const numVal = parseFloat(v);
+      if (!isNaN(numVal) && numVal >= 0) existingEstimates.set(String(k), numVal);
+    }
+  }
+  
   const lastRow = logSheet.getLastRow();
   if (lastRow <= 1) {
-    // Si no hay datos aún, limpiar debajo de los encabezados
     if (sumSheet.getLastRow() > 1) {
-      sumSheet.getRange(2, 1, sumSheet.getLastRow() - 1, 7).clearContent();
+      sumSheet.getRange(2, 1, sumSheet.getLastRow() - 1, 9).clear();
     }
     return;
   }
   
-  // Obtener todos los registros detallados
   const data = logSheet.getRange(2, 1, lastRow - 1, 12).getValues();
   const issuesMap = new Map();
   
@@ -174,35 +191,61 @@ function refreshSummary() {
   
   // Limpiar contenido previo de resumen
   if (sumSheet.getLastRow() > 1) {
-    sumSheet.getRange(2, 1, sumSheet.getLastRow() - 1, 7).clearContent();
+    sumSheet.getRange(2, 1, sumSheet.getLastRow() - 1, 9).clear();
   }
   
   const outputRows = [];
-  issuesMap.forEach(item => {
-    const totalSecs = Math.round(item.totalHours * 3600);
-    const hrs = Math.floor(totalSecs / 3600);
-    const mins = Math.floor((totalSecs % 3600) / 60);
-    const timeFormatted = `${hrs}h ${mins}m`;
+  const sortedItems = Array.from(issuesMap.values());
+  sortedItems.sort((a, b) => {
+    if (a.sprint !== b.sprint) return a.sprint.localeCompare(b.sprint);
+    return Number(a.issueNum) - Number(b.issueNum);
+  });
+  
+  sortedItems.forEach((item, idx) => {
+    const rowIdx = idx + 2;
+    const estHours = existingEstimates.get(String(item.issueNum));
+    
+    // Fórmulas para Diferencia (Real - Estimado) y % Consumido
+    const diffFormula = `=IF(OR(ISBLANK(D${rowIdx}), D${rowIdx}=""), "-", E${rowIdx}-D${rowIdx})`;
+    const pctFormula = `=IF(OR(ISBLANK(D${rowIdx}), D${rowIdx}="", D${rowIdx}=0), "-", E${rowIdx}/D${rowIdx})`;
     
     outputRows.push([
       item.sprint,
       item.issueNum,
       item.title,
+      (typeof estHours === 'number' && estHours >= 0) ? Number(estHours.toFixed(2)) : '',
       Number(item.totalHours.toFixed(2)),
-      timeFormatted,
+      diffFormula,
+      pctFormula,
       item.sessionsCount,
       item.link
     ]);
   });
   
   if (outputRows.length > 0) {
-    // Ordenar por Sprint y número de Issue
-    outputRows.sort((a, b) => {
-      if (a[0] !== b[0]) return a[0].localeCompare(b[0]);
-      return Number(a[1]) - Number(b[1]);
-    });
-    sumSheet.getRange(2, 1, outputRows.length, 7).setValues(outputRows);
-    sumSheet.getRange(2, 4, outputRows.length, 1).setNumberFormat('0.00');
+    sumSheet.getRange(2, 1, outputRows.length, 9).setValues(outputRows);
+    sumSheet.getRange(2, 4, outputRows.length, 2).setNumberFormat('0.00'); // Horas Estimadas y Reales
+    sumSheet.getRange(2, 6, outputRows.length, 1).setNumberFormat('+0.00;-0.00;0.00'); // Diferencia
+    sumSheet.getRange(2, 7, outputRows.length, 1).setNumberFormat('0.0%'); // % Consumido
+    
+    // Reglas de Formato Condicional (Semáforo sobre % Consumido)
+    const pctRange = sumSheet.getRange(2, 7, outputRows.length, 1);
+    
+    const ruleGreen = SpreadsheetApp.newConditionalFormatRule()
+      .whenNumberLessThanOrEqualTo(1.0)
+      .setBackground('#dcfce7')
+      .setFontColor('#166534')
+      .setRanges([pctRange])
+      .build();
+      
+    const ruleRed = SpreadsheetApp.newConditionalFormatRule()
+      .whenNumberGreaterThan(1.0)
+      .setBackground('#fee2e2')
+      .setFontColor('#991b1b')
+      .setRanges([pctRange])
+      .build();
+      
+    sumSheet.setConditionalFormatRules([ruleGreen, ruleRed]);
   }
 }
 
@@ -218,7 +261,8 @@ function getSettings() {
     owner: props.getProperty('GH_OWNER') || '',
     repo: props.getProperty('GH_REPO') || '',
     projectNumber: props.getProperty('GH_PROJECT_NUMBER') || '',
-    username: props.getProperty('GH_USERNAME') || ''
+    username: props.getProperty('GH_USERNAME') || '',
+    estimateField: props.getProperty('GH_ESTIMATE_FIELD') || ''
   };
 }
 
@@ -230,6 +274,7 @@ function saveSettings(settings) {
   props.setProperty('GH_REPO', (settings.repo || '').trim());
   props.setProperty('GH_PROJECT_NUMBER', String(settings.projectNumber || '').trim());
   props.setProperty('GH_USERNAME', (settings.username || '').trim());
+  props.setProperty('GH_ESTIMATE_FIELD', (settings.estimateField || '').trim());
   return { success: true, message: 'Configuración guardada de forma segura.' };
 }
 
@@ -379,6 +424,11 @@ function getProjectSprintData() {
                     }
                   }
                 }
+                ... on ProjectV2Field {
+                  id
+                  name
+                  dataType
+                }
               }
             }
             items(first: 100, after: $cursor) {
@@ -431,6 +481,15 @@ function getProjectSprintData() {
                       title
                       iterationId
                     }
+                    ... on ProjectV2ItemFieldNumberValue {
+                      field {
+                        ... on ProjectV2Field {
+                          id
+                          name
+                        }
+                      }
+                      number
+                    }
                   }
                 }
               }
@@ -469,15 +528,30 @@ function getProjectSprintData() {
       }
     }
     
-    // Identificar campo de Iteración y de Estado (Status)
+    // Identificar campo de Iteración, de Estado (Status) y de Estimación (Number)
     let iterationField = null;
     let statusField = null;
+    let estimateField = null;
+    const configuredEstimateName = (config.estimateField || '').trim().toLowerCase();
     
     for (const f of project.fields.nodes) {
       if (f.configuration && f.configuration.iterations) {
         iterationField = f;
       } else if (f.name && f.name.toLowerCase() === 'status') {
         statusField = f;
+      } else if (f.dataType === 'NUMBER') {
+        const fNameLower = (f.name || '').toLowerCase();
+        if (configuredEstimateName && fNameLower === configuredEstimateName) {
+          estimateField = f;
+        } else if (!estimateField && (
+          fNameLower.includes('estimate') || 
+          fNameLower.includes('estimaci') || 
+          fNameLower.includes('point') || 
+          fNameLower.includes('horas') || 
+          fNameLower.includes('tiempo')
+        )) {
+          estimateField = f;
+        }
       }
     }
     
@@ -510,6 +584,7 @@ function getProjectSprintData() {
       let itemSprintId = null;
       let itemStatusName = '';
       let itemStatusOptionId = '';
+      let itemEstimate = 0;
       
       for (const fVal of item.fieldValues.nodes) {
         if (fVal.iterationId) {
@@ -518,6 +593,12 @@ function getProjectSprintData() {
         } else if (fVal.optionId && fVal.field?.name?.toLowerCase() === 'status') {
           itemStatusName = fVal.name;
           itemStatusOptionId = fVal.optionId;
+        } else if (typeof fVal.number === 'number') {
+          if (estimateField && fVal.field?.id === estimateField.id) {
+            itemEstimate = fVal.number;
+          } else if (!estimateField) {
+            itemEstimate = fVal.number;
+          }
         }
       }
 
@@ -540,7 +621,8 @@ function getProjectSprintData() {
         sprintTitle: itemSprintTitle,
         sprintId: itemSprintId,
         currentStatus: itemStatusName,
-        statusOptionId: itemStatusOptionId
+        statusOptionId: itemStatusOptionId,
+        estimate: itemEstimate
       });
     }
 
@@ -564,12 +646,62 @@ function getProjectSprintData() {
       projectTitle: project.title,
       statusFieldId: statusField ? statusField.id : null,
       statusOptions: statusField ? statusField.options : [],
+      estimateFieldId: estimateField ? estimateField.id : null,
+      estimateFieldName: estimateField ? estimateField.name : null,
       iterations: iterationsList,
       issues: issues
     };
   } catch (err) {
     return { success: false, message: err.message };
   }
+}
+
+function updateIssueEstimate(projectId, itemId, estimateFieldId, numberValue, issueNumber) {
+  const num = parseFloat(numberValue);
+  if (isNaN(num) || num < 0) throw new Error('El valor estimado debe ser un número mayor o igual a 0.');
+
+  let ghUpdated = false;
+  if (projectId && itemId && estimateFieldId) {
+    const mutation = `
+      mutation UpdateEstimate($projectId: ID!, $itemId: ID!, $fieldId: ID!, $value: Float!) {
+        updateProjectV2ItemFieldValue(
+          input: {
+            projectId: $projectId
+            itemId: $itemId
+            fieldId: $fieldId
+            value: {
+              number: $value
+            }
+          }
+        ) {
+          projectV2Item {
+            id
+          }
+        }
+      }
+    `;
+
+    try {
+      executeGitHubGraphQL(mutation, {
+        projectId: projectId,
+        itemId: itemId,
+        fieldId: estimateFieldId,
+        value: num
+      });
+      ghUpdated = true;
+    } catch (err) {
+      console.warn('Error al actualizar estimación en GitHub:', err.message);
+    }
+  }
+
+  // Refrescar y guardar en la hoja de Resumen por Issue
+  if (issueNumber) {
+    const map = {};
+    map[String(issueNumber)] = num;
+    refreshSummary(map);
+  }
+
+  return { success: true, estimate: num, ghUpdated: ghUpdated };
 }
 
 // ==========================================
@@ -744,17 +876,34 @@ function saveWorkSession(sessionData) {
     }
   }
   
+  // 3. Actualizar estimación si se modificó
+  let githubEstimateSuccess = false;
+  if (typeof sessionData.newEstimate === 'number' && sessionData.newEstimate >= 0) {
+    if (sessionData.estimateFieldId && sessionData.projectId && sessionData.projectItemId) {
+      try {
+        const estRes = updateIssueEstimate(sessionData.projectId, sessionData.projectItemId, sessionData.estimateFieldId, sessionData.newEstimate, sessionData.issueNumber);
+        githubEstimateSuccess = estRes.ghUpdated;
+      } catch (err) {
+        console.warn('Error al actualizar estimación en GitHub:', err.message);
+      }
+    } else if (sessionData.issueNumber) {
+      const map = {};
+      map[String(sessionData.issueNumber)] = sessionData.newEstimate;
+      refreshSummary(map);
+    }
+  } else {
+    refreshSummary();
+  }
+  
   // Limpiar timer activo
   discardTimer();
-  
-  // Refrescar resumen
-  refreshSummary();
   
   return {
     success: true,
     message: 'Sesión guardada exitosamente.',
     githubCommentSuccess: githubCommentSuccess,
-    githubStatusSuccess: githubStatusSuccess
+    githubStatusSuccess: githubStatusSuccess,
+    githubEstimateSuccess: githubEstimateSuccess
   };
 }
 
