@@ -72,19 +72,13 @@
 
 Podés configurar el proyecto en menos de 5 minutos mediante cualquiera de los siguientes métodos:
 
-### Opción 1: Instalación Manual Paso a Paso
+### Opción 1: Copia directa (Crear una  copia de una hoja preconfigurada con el código)
+https://docs.google.com/spreadsheets/d/187UjXKfWjCBEcvivS8SN0lmQ7e-0G9tw6jZ8y26x4fU/edit?usp=sharing 
+1- Abre la Plantilla de Google Sheets (Copia Rápida) (puedes enlazar aquí tu propia plantilla pública).
+2- Haz clic en Hacer una copia.
+3- Continúa directamente a la sección: Configuración.
 
-#### Paso 1: Generar tu Personal Access Token (PAT) en GitHub
-1. En GitHub, andá a **Settings > Developer Settings > Personal Access Tokens > Tokens (classic)**.
-2. Hacé clic en **Generate new token (classic)**.
-3. Asignale una descripción (ej. `Google Sheets Time Tracker`).
-4. Seleccioná los permisos (*scopes*) mínimos requeridos:
-   - `repo` (Acceso a repositorios públicos o privados, issues y comentarios).
-   - `read:project` y `project` (Lectura y actualización en GitHub Projects v2).
-5. Hacé clic en **Generate token** y copia el token generado (`ghp_...`).
-> *Nota: También podés usar Fine-grained Personal Access Tokens con permisos equivalentes de lectura y escritura para Issues y Projects.*
-
-#### Paso 2: Crear la Hoja de Cálculo y Cargar el Script
+### Opción 2: Instalación Manual Paso a Paso
 1. Abrí [Google Sheets](https://sheets.new) y creá una hoja en blanco nueva.
 2. En el menú superior, andá a **Extensiones > Apps Script**.
 3. En el editor de Apps Script:
@@ -94,7 +88,7 @@ Podés configurar el proyecto en menos de 5 minutos mediante cualquiera de los s
    - *(Opcional)* Andá a **Configuración del proyecto** (ícono de engranaje), tildá la casilla **Mostrar archivo de manifiesto "appsscript.json" en el editor**, volvé a la pestaña de archivos y reemplazá el contenido de `appsscript.json` por [`src/appsscript.json`](./src/appsscript.json).
 4. Hacé clic en el ícono de **Guardar** o presioná `Ctrl + S`.
 
-#### Paso 3: Inicialización y Autorización
+#### Configuración de la hoja antes de comenzar a usarla
 1. Volvé a tu hoja de cálculo y recargala (**F5**).
 2. Vas a ver aparecer un nuevo menú superior llamado **GitHub Tracker**.
 3. Hacé clic en **GitHub Tracker > Inicializar Hojas de Cálculo**.
@@ -105,10 +99,17 @@ Podés configurar el proyecto en menos de 5 minutos mediante cualquiera de los s
    - `Registro Detallado`
    - `Resumen por Issue`
 
-#### Paso 4: Conectar tu Proyecto de GitHub
+#### Conectar tu Proyecto de GitHub
 1. Hacé clic en **GitHub Tracker > Configuración de GitHub**.
 2. Completá los datos solicitados:
-   - **Personal Access Token (PAT)**: Pegá el token que generaste en el Paso 1.
+   - **Personal Access Token (PAT)**: 1. En GitHub, andá a **Settings > Developer Settings > Personal Access Tokens > Tokens (classic)**.
+                                      2. Hacé clic en **Generate new token (classic)**.
+                                      3. Asignale una descripción (ej. `Google Sheets Time Tracker`).
+                                      4. Seleccioná los permisos (*scopes*) mínimos requeridos:
+                                         - `repo` (Acceso a repositorios públicos o privados, issues y comentarios).
+                                         - `read:project` y `project` (Lectura y actualización en GitHub Projects v2).
+                                      5. Hacé clic en **Generate token** y copia el token generado (`ghp_...`).
+                                      > *Nota: También podés usar Fine-grained Personal Access Tokens con permisos equivalentes de lectura y escritura para Issues y Projects.*
    - **Tipo de Dueño**: Elegí `Organización` o `Usuario Personal`.
    - **Organización / Usuario**: El identificador de usuario u organización dueña del proyecto.
    - **Nombre del Repositorio**: El nombre del repo donde están los issues.
@@ -117,9 +118,12 @@ Podés configurar el proyecto en menos de 5 minutos mediante cualquiera de los s
 3. Hacé clic en **Probar Conexión** para validar la comunicación.
 4. Hacé clic en **Guardar**.
 
+
+
+
 ---
 
-### Opción 2: Para Desarrolladores (Google Clasp)
+### Opción 3: Para Desarrolladores (Google Clasp)
 
 Si preferís laburar localmente y desplegar mediante la CLI oficial de Google:
 
