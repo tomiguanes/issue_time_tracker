@@ -110,7 +110,7 @@ Podés configurar el proyecto en menos de 5 minutos mediante cualquiera de los s
                                       5. Hacé clic en **Generate token** y copia el token generado (`ghp_...`).
                                       > *Nota: También podés usar Fine-grained Personal Access Tokens con permisos equivalentes de lectura y escritura para Issues y Projects.*
    - **Tipo de Dueño**: Elegí `Organización` o `Usuario Personal`.
-   - **Organización / Usuario**: El identificador de usuario u organización dueña del proyecto.
+   - **Organización / Usuario**: El identificador del usuario en GitHub dueña del repositorio.
    - **Nombre del Repositorio**: El nombre del repo donde están los issues.
    - **Número del Project (v2)**: El número visible en la URL del proyecto (ej: `github.com/orgs/mi-org/projects/3` -> el número es `3`).
    - **Tu Usuario de GitHub**: Tu usuario para filtrar las tareas asignadas a vos.
