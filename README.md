@@ -73,8 +73,7 @@
 Podés configurar el proyecto en menos de 5 minutos mediante cualquiera de los siguientes métodos:
 ## EN REVISIÓN (se recomienda instalar paso a paso)
 ### Opción 1: Copia directa (Crear una  copia de una hoja preconfigurada con el código)
-https://docs.google.com/spreadsheets/d/187UjXKfWjCBEcvivS8SN0lmQ7e-0G9tw6jZ8y26x4fU/edit?usp=sharing 
-1. Abre la Plantilla de Google Sheets (Copia Rápida) (puedes enlazar aquí tu propia plantilla pública).
+1. Abrí la Plantilla de Google Sheets (https://docs.google.com/spreadsheets/d/1n_hVBSfSa0g0RYwDN_0-KeE0SjZ6OU49zH10sUTtYyU/edit?usp=sharing).
 2. Haz clic en Hacer una copia.
 3. Continúa directamente a la sección: Configuración.
 
